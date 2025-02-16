@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
-
+import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes.js"; // User authentication (Clients & Service Providers)
 import providerRoutes from "./routes/providerRoutes.js"; // Service Providers
 import adminRoutes from "./routes/adminRoutes.js"; // Admin functionalities
@@ -62,7 +62,7 @@ app.use("/api/payments", paymentRoutes);
 app.get("/", (req, res) => {
   res.json({
     message: "Server is running",
-    dbStatus: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected"
+    dbStatus: mongoose.connection?.readyState === 1 ? "Connected" : "Disconnected"
   });
 });
 
@@ -74,5 +74,13 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
+
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
 
 export default app;
