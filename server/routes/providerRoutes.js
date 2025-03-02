@@ -1,19 +1,35 @@
 import express from "express";
-import { registerProvider, getProviders, updateProviderProfile, deleteProvider } from "../controllers/providerController.js";
 import { protect, providerProtect } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
+import {
+  verifyProviderOTP,
+  registerProvider,
+  getProviders,
+  updateProviderProfile,
+  deleteProvider,
+  getProviderProfile,
+  getProviderServices,
+  addService,
+  updateService,
+  deleteService
+} from "../controllers/providerController.js";
 
 const router = express.Router();
 
-// Register a new service provider
-router.post("/register", registerProvider);
-
-// Get all verified service providers
-router.get("/", getProviders);
-
-// Update provider profile
+// Profile routes
 router.put("/profile", protect, providerProtect, updateProviderProfile);
+router.get("/profile", protect, providerProtect, getProviderProfile);
 
-// Delete a provider (Admin only)
+// Service routes with file upload
+router.post("/services", protect, providerProtect, upload.single('image'), addService);
+router.put("/services/:id", protect, providerProtect, upload.single('image'), updateService);
+router.get("/services", protect, providerProtect, getProviderServices);
+router.delete("/services/:id", protect, providerProtect, deleteService);
+
+// Other routes
+router.post("/register", registerProvider);
+router.post("/verify-otp", verifyProviderOTP);
+router.get("/", getProviders);
 router.delete("/:id", protect, deleteProvider);
 
 export default router;

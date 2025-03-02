@@ -7,6 +7,10 @@ import providerRoutes from "./routes/providerRoutes.js"; // Service Providers
 import adminRoutes from "./routes/adminRoutes.js"; // Admin functionalities
 import serviceRoutes from "./routes/serviceRoutes.js"; // Service request management
 import paymentRoutes from "./routes/paymentRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import workStatusRoutes from "./routes/workStatusRoutes.js";
+import otpRoutes from "./routes/otpRoutes.js"; // OTP route
+import cookieParser from 'cookie-parser';
 
 
 
@@ -20,9 +24,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS configuration
 const allowedOrigins = [
-  "http://localhost:5173"
+  "http://localhost:3000" 
 ];
-
+app.use(cookieParser());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -57,6 +61,9 @@ app.use("/api/providers", providerRoutes);
 app.use("/api/admin", adminRoutes); 
 app.use("/api/services", serviceRoutes); 
 app.use("/api/payments", paymentRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/work-status", workStatusRoutes);
+app.use("/api/otp", otpRoutes); 
 
 // Root route
 app.get("/", (req, res) => {
@@ -69,12 +76,31 @@ app.get("/", (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
+  
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation Error',
+      errors: Object.values(err.errors).map(e => e.message)
+    });
+  }
+
+  // Cast error (invalid ObjectId)
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid ID format'
+    });
+  }
+
+  // Default error
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || "Internal Server Error",
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
-
 
 const PORT = process.env.PORT || 5000;
 
